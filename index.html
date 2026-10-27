@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#19152f"><meta name="description" content="PortVision: identifica conexiones y aprende a revisar tu computadora con guías interactivas.">
+<title>PortVision — Escáner y guía para tu PC</title><link rel="manifest" href="manifest.json"><link rel="icon" href="icons/icon-192.png"><link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <a class="brand" href="#inicio" aria-label="PortVision inicio"><span class="brand-mark">✦<i></i></span><span class="brand-word">Port<span>Vision</span><small>visión inteligente para tu PC</small></span></a>
+    <button class="icon-button" id="historyShortcut" aria-label="Abrir historial"><span>◴</span><i id="historyDot"></i></button>
+  </header>
+  <main>
+    <section class="screen active" id="screen-home" data-screen="home">
+      <section class="hero">
+        <div class="hero-copy"><span class="eyebrow"><i class="pulse-dot"></i> TU MINI TALLER DIGITAL</span><h1>Tu PC tiene<br>un <em>experto</em><br>cerca.</h1><p>Encuentra el puerto, sigue la guía y arregla lo sencillo sin entrar en pánico.</p><button class="button mint" id="heroScan">¡Vamos a revisar! <b>↗</b></button></div>
+        <div class="hero-art" aria-hidden="true"><div class="art-aura"></div><div class="art-orbit"></div><div class="art-monitor"><div class="art-screen"><span class="screen-spark">✦</span><span class="screen-word">PORT<span>VISION</span></span><span class="screen-line"></span><span class="screen-line tiny"></span></div><div class="art-neck"></div><div class="art-foot"></div></div><span class="float-chip chip-one">USB <b>●</b></span><span class="float-chip chip-two">HDMI <b>●</b></span><span class="float-chip chip-three">✦ SMART SCAN</span><span class="art-star">✧</span></div>
+        <span class="hero-decoration">✳</span>
+      </section>
+      <div class="section-title"><div><small>¿QUÉ HACEMOS HOY?</small><h2>Elige tu misión <span>⚡</span></h2></div></div>
+      <div class="mission-grid">
+        <button class="mission mission-purple" data-open="scanner"><span class="mission-icon">⌁</span><span class="mission-title">Escanear puertos</span><span class="mission-desc">Cámara y etiquetas interactivas</span><b class="mission-go">↗</b></button>
+        <button class="mission mission-green" data-open="diagnose"><span class="mission-icon">ϟ</span><span class="mission-title">Tengo una falla</span><span class="mission-desc">Diagnóstico guiado y sencillo</span><b class="mission-go">↗</b></button>
+        <button class="mission mission-orange" data-open="guides"><span class="mission-icon">⚒</span><span class="mission-title">Enséñame cómo</span><span class="mission-desc">Guías paso a paso</span><b class="mission-go">↗</b></button>
+        <button class="mission mission-blue" data-open="care"><span class="mission-icon">✦</span><span class="mission-title">Cuidar mi PC</span><span class="mission-desc">Checklist de mantenimiento</span><b class="mission-go">↗</b></button>
+      </div>
+      <div class="friendly-tip"><span>💡</span><div><b>Consejo de tu compa técnico</b><p>Antes de tocar conexiones internas, apaga la PC y desconéctala. ¡Primero tú, luego el equipo!</p></div></div>
+      <div class="section-title activity-title"><div><small>LO QUE HAS HECHO</small><h2>Tu progreso <span>🏆</span></h2></div><button class="link-button" id="homeHistory">Ver historial →</button></div>
+      <div id="homeActivity" class="activity-list"></div>
+    </section>
+
+    <section class="screen" id="screen-scanner" data-screen="scanner">
+      <div class="page-head"><button class="back-button" data-back aria-label="Volver">←</button><div><small>REALIDAD AUMENTADA · DEMO</small><h1>Escanea <em>la zona</em></h1></div></div>
+      <p class="intro">Enfoca la parte trasera de tu computadora. Toca una etiqueta para saber para qué sirve cada puerto.</p>
+      <div class="camera-stage" id="cameraStage">
+        <video id="cameraVideo" autoplay playsinline muted></video>
+        <div class="camera-placeholder" id="cameraPlaceholder"><div class="camera-glyph">⌁</div><b>¡Activa la cámara!</b><span>Te ayudamos a ubicar las conexiones</span><button class="button mint small" id="enableCamera">Activar cámara <b>↗</b></button></div>
+        <div class="camera-shade"></div><div class="scan-corners"><i></i><i></i><i></i><i></i><b></b></div>
+        <div class="camera-status"><span class="pulse-dot"></span><span id="cameraStatus">ESPERANDO CÁMARA</span><b>SCAN DEMO</b></div>
+        <button class="ar-label ar-usb" data-port="usb"><b>USB</b><small>Periféricos</small><i></i></button>
+        <button class="ar-label ar-video" data-port="video"><b>HDMI / DP</b><small>Pantalla</small><i></i></button>
+        <button class="ar-label ar-lan" data-port="lan"><b>ETHERNET</b><small>Internet</small><i></i></button>
+        <button class="ar-label ar-audio" data-port="audio"><b>AUDIO</b><small>Audífonos</small><i></i></button>
+        <div class="camera-note" id="cameraNote">Etiquetas demostrativas · confirma visualmente el puerto</div>
+      </div>
+      <div class="camera-actions"><button class="button white" id="switchCamera">↻ Cambiar cámara</button><button class="button purple" id="capturePhoto">◎ Capturar foto</button></div>
+      <div class="honesty-note"><span>✦</span><p><b>Escáner asistido</b><br>Las etiquetas son interactivas, pero todavía no reconocen automáticamente la posición real de los puertos.</p></div>
+      <div class="section-title"><div><small>TOCA PARA APRENDER</small><h2>¿Qué conexión es? <span>👇</span></h2></div></div>
+      <div class="port-list">
+        <button class="port-row" data-port="usb"><span class="port-picto violet">▣</span><span><b>USB-A / USB-C</b><small>Mouse, teclado, memorias</small></span><strong>›</strong></button>
+        <button class="port-row" data-port="video"><span class="port-picto yellow">▱</span><span><b>HDMI / DisplayPort</b><small>Monitor y pantalla</small></span><strong>›</strong></button>
+        <button class="port-row" data-port="lan"><span class="port-picto green">⌘</span><span><b>Ethernet (RJ45)</b><small>Red por cable</small></span><strong>›</strong></button>
+        <button class="port-row" data-port="audio"><span class="port-picto pink">♫</span><span><b>Audio de 3.5 mm</b><small>Audífonos o micrófono</small></span><strong>›</strong></button>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-diagnose" data-screen="diagnose">
+      <div class="page-head"><button class="back-button" data-back aria-label="Volver">←</button><div><small>DETECTIVE DE FALLAS</small><h1>¿Qué le pasa <em>a tu PC?</em></h1></div></div>
+      <p class="intro">Te hacemos unas preguntas y te recomendamos pruebas seguras. No adivinamos: vamos descartando.</p>
+      <div class="wizard-progress"><div><small id="questionCount">PREGUNTA 1 DE 3</small><b id="questionPercent">33%</b></div><div class="progress-track"><i id="questionBar"></i></div></div>
+      <div class="wizard-card" id="wizardCard"><div class="wizard-emoji" id="questionEmoji">⚡</div><h2 id="questionTitle">¿Qué problema notas?</h2><p id="questionHint">Elige el síntoma que mejor describe lo que pasa.</p><div id="answerOptions" class="answer-options"></div><button class="button purple full" id="nextQuestion" disabled>Continuar <b>→</b></button></div>
+      <div class="safety-card"><span>🛡️</span><p><b>Ojo con la seguridad</b><br>Nunca abras la fuente de poder ni manipules componentes internos con la PC conectada.</p></div>
+    </section>
+
+    <section class="screen" id="screen-guides" data-screen="guides">
+      <div class="page-head"><button class="back-button" data-back aria-label="Volver">←</button><div><small>MANUAL PARA HUMANOS</small><h1>Guías <em>sin enredos</em></h1></div></div>
+      <div class="search-box"><span>⌕</span><input id="guideSearch" type="search" placeholder="Busca USB, pantalla, internet…" aria-label="Buscar guías"><button id="clearSearch" aria-label="Limpiar búsqueda">×</button></div>
+      <div class="filter-scroller" id="guideFilters"><button class="filter-pill selected" data-filter="all">✨ Todo</button><button class="filter-pill" data-filter="conexion">🔌 Conexiones</button><button class="filter-pill" data-filter="diagnostico">🕵️ Diagnóstico</button><button class="filter-pill" data-filter="mantenimiento">🧽 Cuidado</button></div>
+      <div id="guideList" class="guide-list"></div>
+    </section>
+
+    <section class="screen" id="screen-detail" data-screen="detail">
+      <div class="page-head"><button class="back-button" data-back aria-label="Volver">←</button><div><small>GUÍA INTERACTIVA</small><h1 id="detailTitle">Tu guía</h1></div></div>
+      <div class="detail-banner" id="detailBanner"><span id="detailEmoji">🧰</span><div><b id="detailLevel">FÁCIL</b><p id="detailSummary"></p></div></div>
+      <div class="step-meta"><small id="stepCount">PASO 1 DE 4</small><b id="stepPercent">25%</b></div><div class="progress-track step-track"><i id="stepBar"></i></div>
+      <article class="step-card"><div class="step-number" id="stepNumber">01</div><h2 id="stepTitle">Primer paso</h2><p id="stepText"></p><div class="step-tip"><span>💡</span><p id="stepTip"></p></div></article>
+      <div class="step-actions"><button class="button white" id="prevStep" disabled>← Anterior</button><button class="button mint" id="nextStep">Siguiente →</button></div><button class="link-button finish-guide hidden" id="finishGuide">✓ ¡Terminé esta guía!</button>
+    </section>
+
+    <section class="screen" id="screen-care" data-screen="care">
+      <div class="page-head"><button class="back-button" data-back aria-label="Volver">←</button><div><small>RUTINA DE CUIDADO</small><h1>Mima a tu <em>compu</em></h1></div></div>
+      <div class="care-banner"><div><small>CHECKLIST DEL MES</small><h2>Un poco de cariño evita muchos sustos.</h2><p>Marca lo que ya hiciste. Se guarda en este teléfono.</p></div><span>🪛</span></div>
+      <div class="care-progress"><div><b>Tu progreso</b><strong id="careCount">0 de 5</strong></div><div class="progress-track"><i id="careBar"></i></div></div><div id="careList" class="care-list"></div>
+      <div class="safety-card"><span>⚠️</span><p>Apaga y desconecta antes de limpiar. No rocíes líquidos directamente ni abras la fuente de poder.</p></div>
+    </section>
+
+    <section class="screen" id="screen-history" data-screen="history">
+      <div class="page-head"><button class="back-button" data-back aria-label="Volver">←</button><div><small>LO QUE YA LOGRASTE</small><h1>Tu <em>historial</em></h1></div></div>
+      <div class="trophy-banner"><span>🏆</span><div><b id="historyTotal">0</b><small>actividades guardadas</small></div><div class="trophy-side"><b id="guidesTotal">0</b><small>guías completadas</small></div></div>
+      <div class="section-title"><div><small>REGISTRO EN ESTE DISPOSITIVO</small><h2>Actividad reciente</h2></div><button class="link-button" id="clearHistory">Vaciar</button></div><div id="historyList" class="activity-list"></div>
+    </section>
+  </main>
+  <nav class="bottom-nav" aria-label="Navegación principal"><button data-tab="home" class="active"><span>⌂</span><small>Inicio</small></button><button data-tab="scanner"><span>⌁</span><small>Escáner</small></button><button data-tab="diagnose"><span>ϟ</span><small>Diagnóstico</small></button><button data-tab="guides"><span>▤</span><small>Guías</small></button><button data-tab="care"><span>✦</span><small>Cuidado</small></button></nav>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="modal-backdrop hidden" id="portModal"><article class="modal-card" role="dialog" aria-modal="true" aria-labelledby="portModalTitle"><button class="modal-close" id="closePortModal" aria-label="Cerrar">×</button><span class="modal-emoji" id="portModalEmoji">🔌</span><small>FICHA RÁPIDA</small><h2 id="portModalTitle">USB</h2><p id="portModalBody"></p><div class="modal-tip" id="portModalTip"></div><button class="button purple full" id="portGuideButton">Ver guía relacionada →</button></article></div>
+</div>
+<script src="guides.js"></script><script src="app.js"></script>
+</body></html>
