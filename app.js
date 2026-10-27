@@ -41,9 +41,129 @@
  function renderWizardShell(){const card=$('#wizardCard');card.innerHTML='<div class="wizard-emoji" id="questionEmoji">⚡</div><h2 id="questionTitle">¿Qué problema notas?</h2><p id="questionHint">Elige el síntoma que mejor describe lo que pasa.</p><div id="answerOptions" class="answer-options"></div><button class="button purple full" id="nextQuestion" disabled>Continuar <b>→</b></button>'}
  function renderQuestion(){const q=questions[state.question];if(!q)return;$('#questionEmoji').textContent=q.emoji;$('#questionTitle').textContent=q.title;$('#questionHint').textContent=q.hint;$('#questionCount').textContent=`PREGUNTA ${state.question+1} DE ${questions.length}`;$('#questionPercent').textContent=`${Math.round((state.question+1)/questions.length*100)}%`;$('#questionBar').style.width=`${(state.question+1)/questions.length*100}%`;$('#answerOptions').innerHTML=q.answers.map(a=>`<button class="answer-option ${state.selected===a[0]?'selected':''}" data-answer="${a[0]}"><span class="option-icon">${a[1]}</span><span>${a[2]}</span><span class="option-check"></span></button>`).join('');$('#nextQuestion').disabled=!state.selected;$('#nextQuestion').innerHTML=state.question===questions.length-1?'Ver recomendaciones <b>→</b>':'Continuar <b>→</b>'}
  function showDiagnosis(){const symptom=state.answers[0];const map={screen:['hdmi','Comprueba el monitor, el cable y la salida de video.'],internet:['ethernet','Revisa el cable RJ45, las luces del router y el estado de red.'],usb:['usb','Prueba el accesorio y otro puerto antes de tocar controladores.'],audio:['audio','Comprueba volumen, salida seleccionada y conexión.'],slow:['slow','Revisa aplicaciones de inicio, almacenamiento y actualizaciones.'],other:['clean','Empieza por una revisión externa segura e identifica mejor el síntoma.']};const [id,advice]=map[symptom]||map.other;const g=window.PORTVISION_GUIDES.find(x=>x.id===id);const cautious=state.answers[2]==='beginner';$('#wizardCard').innerHTML=`<div class="wizard-emoji">🧭</div><small class="result-kicker">PLAN SUGERIDO</small><h2>Vamos paso a paso</h2><div class="result-badge"><span>${g.emoji}</span><div><b>${g.title}</b><p>Coincide con el síntoma que elegiste. No es un diagnóstico definitivo.</p></div></div><p class="intro">${advice}</p><h3 style="font-size:13px;margin:17px 0 7px">Empieza por aquí</h3><ol class="result-list"><li>Guarda tu trabajo si el equipo todavía responde.</li><li>${cautious?'Revisa solo conexiones externas y ajustes visibles.':'Sigue los pasos de la guía y nunca fuerces conectores.'}</li><li>Si notas humo, chispas, olor a quemado o calor inusual, deja de usarlo y busca ayuda técnica.</li></ol><div class="result-actions"><button class="button purple full" id="suggestedGuide">Abrir guía recomendada →</button><button class="button white full" id="restartWizard">Empezar otro diagnóstico</button></div>`;$('#questionCount').textContent='RECOMENDACIÓN LISTA';$('#questionPercent').textContent='100%';$('#questionBar').style.width='100%';$('#suggestedGuide').addEventListener('click',()=>openGuide(id));$('#restartWizard').addEventListener('click',resetDiagnosis);addActivity(`Diagnóstico: ${g.title}`,'diagnosis')}
- async function startCamera(){if(!navigator.mediaDevices?.getUserMedia){toast('No se puede abrir la cámara en este contexto. Prueba HTTPS o localhost.');return}try{stopCamera();state.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:state.facing},width:{ideal:1280},height:{ideal:720}},audio:false});const video=$('#cameraVideo');video.srcObject=state.stream;await video.play();$('#cameraStage').classList.add('camera-on');$('#cameraStatus').textContent='CÁMARA ACTIVA';$('#cameraNote').textContent='Etiquetas demostrativas · toca una para ver su ficha';$('#enableCamera').textContent='Cámara activa ✓';toast('¡Cámara lista!')}catch(error){let msg='No se pudo iniciar la cámara. Revisa los permisos y prueba HTTPS.';if(error.name==='NotAllowedError'||error.name==='PermissionDeniedError')msg='Permite el uso de la cámara en los permisos del navegador.';else if(error.name==='NotFoundError')msg='No se encontró una cámara disponible.';else if(error.name==='NotReadableError')msg='La cámara puede estar ocupada por otra aplicación.';toast(msg)}}
- function stopCamera(){if(state.stream){state.stream.getTracks().forEach(t=>t.stop());state.stream=null}const video=$('#cameraVideo');if(video)video.srcObject=null;const stage=$('#cameraStage');if(stage)stage.classList.remove('camera-on');const status=$('#cameraStatus');if(status)status.textContent='ESPERANDO CÁMARA';const button=$('#enableCamera');if(button)button.textContent='Activar cámara ↗'}
- async function switchCamera(){state.facing=state.facing==='environment'?'user':'environment';await startCamera()}
+ async function startCamera(){
+  if(!navigator.mediaDevices?.getUserMedia){toast('La cámara necesita HTTPS. Abre PortVision desde el enlace https:// de GitHub Pages.');return}
+  try{
+   stopCamera();
+   state.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:state.facing},width:{ideal:1280},height:{ideal:720}},audio:false});
+   const video=$('#cameraVideo');video.srcObject=state.stream;await video.play();
+   $('#cameraStage').classList.add('camera-on');$('#cameraStatus').textContent='CÁMARA ACTIVA · IA DETENIDA';$('#cameraNote').textContent='La cámara está lista. Inicia la detección IA para ubicar puertos.';$('#enableCamera').textContent='Cámara activa ✓';
+   return true;
+  }catch(error){
+   let msg='No se pudo iniciar la cámara. Revisa permisos y usa HTTPS.';
+   if(error.name==='NotAllowedError'||error.name==='PermissionDeniedError')msg='Permite el uso de la cámara en los permisos del navegador.';
+   else if(error.name==='NotFoundError')msg='No se encontró una cámara disponible.';
+   else if(error.name==='NotReadableError')msg='La cámara puede estar ocupada por otra aplicación.';
+   toast(msg);return false;
+  }
+ }
+ function stopDetection(silent=false){
+  state.detectionActive=false;
+  if(state.inferenceTimer){clearTimeout(state.inferenceTimer);state.inferenceTimer=null}
+  if(state.abortController){try{state.abortController.abort()}catch{}state.abortController=null}
+  state.inferenceBusy=false;
+  const layer=$('#detectionLayer');if(layer)layer.replaceChildren();
+  const start=$('#startDetector'),stop=$('#stopDetector');if(start)start.disabled=false;if(stop)stop.disabled=true;
+  const badge=$('#detectorBadge');if(badge)badge.textContent='IA DETENIDA';
+  const status=$('#cameraStatus');if(status)status.textContent=state.stream?'CÁMARA ACTIVA · IA DETENIDA':'CÁMARA DESACTIVADA';
+  const note=$('#cameraNote');if(note)note.textContent=state.stream?'La cámara está activa, pero no se están analizando imágenes.':'Conecta la cámara y el motor de visión para comenzar.';
+  if(!silent)toast('Detección IA detenida.');
+ }
+ function stopCamera(){
+  stopDetection(true);
+  if(state.stream){state.stream.getTracks().forEach(t=>t.stop());state.stream=null}
+  const video=$('#cameraVideo');if(video)video.srcObject=null;
+  const stage=$('#cameraStage');if(stage)stage.classList.remove('camera-on');
+  const status=$('#cameraStatus');if(status)status.textContent='CÁMARA DESACTIVADA';
+  const button=$('#enableCamera');if(button)button.textContent='Activar cámara ↗';
+  const note=$('#cameraNote');if(note)note.textContent='Conecta el motor de visión para detectar puertos reales.';
+ }
+ async function switchCamera(){state.facing=state.facing==='environment'?'user':'environment';const wasDetecting=state.detectionActive;stopDetection(true);const ok=await startCamera();if(ok&&wasDetecting)await startAIDetection()}
+ function portForModelClass(rawClass){
+  const c=String(rawClass||'').toLowerCase().replace(/_/g,'-');
+  if(c==='usb-a'||c==='usb-c'||c.includes('usb'))return {id:'usb',label:c==='usb-c'?'USB-C':'USB-A',description:'Puerto USB detectado'};
+  if(c==='hdmi'||c.includes('displayport'))return {id:'video',label:'HDMI',description:'Puerto de video detectado'};
+  if(c==='rj45'||c.includes('ethernet'))return {id:'lan',label:'RJ45 / Ethernet',description:'Puerto de red detectado'};
+  if(c==='jack-plug'||c.includes('audio'))return {id:'audio',label:'Audio 3.5 mm',description:'Conector de audio detectado'};
+  return null;
+ }
+ async function inferPortsFromVideo(video,apiKey){
+  const maxSide=640,ratio=Math.min(1,maxSide/Math.max(video.videoWidth,video.videoHeight));
+  const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(video.videoWidth*ratio));canvas.height=Math.max(1,Math.round(video.videoHeight*ratio));
+  const ctx=canvas.getContext('2d',{willReadFrequently:false});ctx.drawImage(video,0,0,canvas.width,canvas.height);
+  const dataUrl=canvas.toDataURL('image/jpeg',0.72);const base64=dataUrl.slice(dataUrl.indexOf(',')+1);
+  // Inference hosted endpoint: no key is stored in source, localStorage or the URL bar.
+  const endpoint=`https://detect.roboflow.com/pc-ports/1?api_key=${encodeURIComponent(apiKey)}&confidence=32&overlap=35`;
+  const controller=new AbortController();state.abortController=controller;
+  let response;
+  try{
+   response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:base64,signal:controller.signal,cache:'no-store'});
+  }catch(error){if(error.name==='AbortError')throw error;throw new Error('No se pudo conectar con Roboflow. Revisa internet y vuelve a intentar.');}
+  if(!response.ok){
+   let details='';try{details=(await response.text()).slice(0,280)}catch{}
+   if(response.status===401||response.status===403)throw new Error('Roboflow rechazó la clave o no tienes acceso a ese modelo. Revisa tu API key.');
+   if(response.status===429)throw new Error('El servicio respondió límite de solicitudes/cuota. Espera o revisa tu cuenta de Roboflow.');
+   throw new Error(`El detector respondió HTTP ${response.status}. ${details}`);
+  }
+  const result=await response.json();
+  if(result.error)throw new Error(String(result.error));
+  return {predictions:Array.isArray(result.predictions)?result.predictions:[],image:result.image||{width:canvas.width,height:canvas.height}};
+ }
+ function renderDetections(predictions,imageSize){
+  const layer=$('#detectionLayer'),stage=$('#cameraStage'),video=$('#cameraVideo');layer.replaceChildren();
+  const frameWidth=Number(imageSize?.width)||640,frameHeight=Number(imageSize?.height)||360;
+  const stageWidth=stage.clientWidth,stageHeight=stage.clientHeight;
+  // Match the video element's object-fit: cover so boxes align with visible pixels.
+  const scale=Math.max(stageWidth/video.videoWidth,stageHeight/video.videoHeight);
+  const renderedWidth=video.videoWidth*scale,renderedHeight=video.videoHeight*scale;
+  const offsetX=(stageWidth-renderedWidth)/2,offsetY=(stageHeight-renderedHeight)/2;
+  const usable=predictions.map(p=>({p,kind:portForModelClass(p.class||p.class_name||p.label)})).filter(x=>x.kind&&Number(x.p.confidence??x.p.score??0)>=0.30);
+  usable.forEach(({p,kind},index)=>{
+   const x=Number(p.x)||0,y=Number(p.y)||0,w=Number(p.width)||20,h=Number(p.height)||20;
+   const left=((x-w/2)/frameWidth)*renderedWidth+offsetX;
+   const top=((y-h/2)/frameHeight)*renderedHeight+offsetY;
+   const width=(w/frameWidth)*renderedWidth,height=(h/frameHeight)*renderedHeight;
+   const box=document.createElement('button');box.type='button';box.className='detected-box';box.dataset.port=kind.id;box.style.left=`${left}px`;box.style.top=`${top}px`;box.style.width=`${Math.max(24,width)}px`;box.style.height=`${Math.max(24,height)}px`;box.style.setProperty('--detect-delay',`${index*35}ms`);
+   const tag=document.createElement('span');tag.className='detected-tag';
+   const label=document.createElement('b');label.textContent=kind.label;
+   const confidence=document.createElement('small');confidence.textContent=`${Math.round(Number(p.confidence??p.score??0)*100)}%`;
+   tag.append(label,confidence);box.appendChild(tag);box.setAttribute('aria-label',`${kind.label}, confianza ${confidence.textContent}`);
+   box.addEventListener('click',()=>showPort(kind.id));layer.appendChild(box);
+  });
+  const status=$('#cameraStatus'),note=$('#cameraNote');
+  if(usable.length){status.textContent=`${usable.length} PUERTO${usable.length===1?'':'S'} DETECTADO${usable.length===1?'':'S'}`;note.textContent='Etiquetas calculadas por el modelo de visión. Toca un recuadro para aprender sobre ese puerto.';$('#detectorBadge').textContent='IA EN VIVO';}
+  else{status.textContent='BUSCANDO PUERTOS…';note.textContent='No se detectaron puertos en este fotograma. Acerca la cámara, mejora la luz y evita el movimiento.';$('#detectorBadge').textContent='ANALIZANDO';}
+  return usable.length;
+ }
+ async function startAIDetection(){
+  const apiKey=$('#roboflowKey').value.trim();
+  if(!apiKey){toast('Pega una API key de Roboflow para usar el modelo de puertos.');$('#roboflowKey').focus();return}
+  if(!$('#cloudConsent').checked){toast('Confirma que aceptas enviar fotogramas a Roboflow.');return}
+  state.detectorKey=apiKey;
+  if(!state.stream){const ok=await startCamera();if(!ok)return}
+  if(state.detectionActive)return;
+  const video=$('#cameraVideo');if(!video.videoWidth){toast('La cámara aún está iniciando. Intenta de nuevo en un momento.');return}
+  state.detectionActive=true;$('#startDetector').disabled=true;$('#stopDetector').disabled=false;$('#detectorBadge').textContent='CONECTANDO…';$('#cameraStatus').textContent='CONECTANDO CON EL MODELO';$('#cameraNote').textContent='Enviando fotogramas pequeños a Roboflow para buscar puertos. Pulsa Detener cuando quieras.';$('#detectorHelp').textContent='Detección activa: se analiza aproximadamente un fotograma cada 1.6 segundos. Detén el escaneo para evitar solicitudes innecesarias.';
+  toast('Conectando detector de puertos…');await detectNextFrame();
+ }
+ async function detectNextFrame(){
+  if(!state.detectionActive||!state.stream)return;
+  if(state.inferenceBusy){state.inferenceTimer=setTimeout(detectNextFrame,500);return}
+  const video=$('#cameraVideo');if(!video||video.readyState<2||!video.videoWidth){state.inferenceTimer=setTimeout(detectNextFrame,500);return}
+  state.inferenceBusy=true;
+  try{
+   const result=await inferPortsFromVideo(video,state.detectorKey);
+   if(!state.detectionActive)return;
+   const count=renderDetections(result.predictions,result.image);
+   $('#detectorHelp').textContent=count?`Detectando en vivo: ${count} coincidencia(s) mostrada(s). El porcentaje es la confianza del modelo, no una garantía.`:'El modelo no encontró un puerto en el último fotograma. Prueba cambiar la distancia, luz o ángulo.';
+  }catch(error){
+   if(error.name==='AbortError')return;
+   stopDetection(true);$('#detectorBadge').textContent='ERROR DE IA';$('#cameraStatus').textContent='NO SE PUDO DETECTAR';$('#cameraNote').textContent=error.message;$('#detectorHelp').textContent=error.message;toast(error.message);
+  }finally{
+   state.inferenceBusy=false;state.abortController=null;
+   if(state.detectionActive)state.inferenceTimer=setTimeout(detectNextFrame,1600);
+  }
+ }
  function capturePhoto(){const video=$('#cameraVideo');if(!state.stream||!video.videoWidth){toast('Primero activa la cámara.');return}const canvas=document.createElement('canvas');canvas.width=video.videoWidth;canvas.height=video.videoHeight;canvas.getContext('2d').drawImage(video,0,0);canvas.toBlob(blob=>{if(!blob){toast('No se pudo crear la captura.');return}const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`portvision-captura-${Date.now()}.jpg`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);addActivity('Captura de escáner','scan');toast('Captura lista para guardar')},'image/jpeg',.92)}
  function showPort(id){const p=ports[id];if(!p)return;$('#portModalEmoji').textContent=p.emoji;$('#portModalTitle').textContent=p.title;$('#portModalBody').textContent=p.body;$('#portModalTip').textContent=p.tip;$('#portGuideButton').onclick=()=>{closePortModal();openGuide(p.guide)};$('#portModal').classList.remove('hidden')}
  function closePortModal(){$('#portModal').classList.add('hidden')}
@@ -54,7 +174,7 @@
  $('#heroScan').addEventListener('click',()=>navigate('scanner'));
  $('#historyShortcut').addEventListener('click',()=>navigate('history'));$('#homeHistory').addEventListener('click',()=>navigate('history'));
  $$('[data-back]').forEach(button=>button.addEventListener('click',()=>{if(state.screen==='detail'){navigate(state.detailFrom==='detail'?'guides':state.detailFrom);return}navigate('home')}));
- $('#enableCamera').addEventListener('click',startCamera);$('#switchCamera').addEventListener('click',switchCamera);$('#capturePhoto').addEventListener('click',capturePhoto);
+ $('#enableCamera').addEventListener('click',startCamera);$('#switchCamera').addEventListener('click',switchCamera);$('#capturePhoto').addEventListener('click',capturePhoto);$('#startDetector').addEventListener('click',startAIDetection);$('#stopDetector').addEventListener('click',()=>stopDetection());
  $$('[data-port]').forEach(button=>button.addEventListener('click',()=>showPort(button.dataset.port)));
  $('#closePortModal').addEventListener('click',closePortModal);$('#portModal').addEventListener('click',event=>{if(event.target.id==='portModal')closePortModal()});document.addEventListener('keydown',event=>{if(event.key==='Escape')closePortModal()});
  $('#guideSearch').addEventListener('input',renderGuides);$('#clearSearch').addEventListener('click',()=>{$('#guideSearch').value='';renderGuides()});

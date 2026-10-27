@@ -31,22 +31,28 @@
     </section>
 
     <section class="screen" id="screen-scanner" data-screen="scanner">
-      <div class="page-head"><button class="back-button" data-back aria-label="Volver">←</button><div><small>REALIDAD AUMENTADA · DEMO</small><h1>Escanea <em>la zona</em></h1></div></div>
-      <p class="intro">Enfoca la parte trasera de tu computadora. Toca una etiqueta para saber para qué sirve cada puerto.</p>
+      <div class="page-head"><button class="back-button" data-back aria-label="Volver">←</button><div><small>REALIDAD AUMENTADA · VISIÓN IA</small><h1>Escanea <em>los puertos</em></h1></div></div>
+      <p class="intro">Apunta a los conectores de tu PC. PortVision analizará fotogramas y colocará etiquetas sobre los puertos que logre reconocer.</p>
       <div class="camera-stage" id="cameraStage">
         <video id="cameraVideo" autoplay playsinline muted></video>
         <div class="camera-placeholder" id="cameraPlaceholder"><div class="camera-glyph">⌁</div><b>¡Activa la cámara!</b><span>Te ayudamos a ubicar las conexiones</span><button class="button mint small" id="enableCamera">Activar cámara <b>↗</b></button></div>
         <div class="camera-shade"></div><div class="scan-corners"><i></i><i></i><i></i><i></i><b></b></div>
-        <div class="camera-status"><span class="pulse-dot"></span><span id="cameraStatus">ESPERANDO CÁMARA</span><b>SCAN DEMO</b></div>
-        <button class="ar-label ar-usb" data-port="usb"><b>USB</b><small>Periféricos</small><i></i></button>
-        <button class="ar-label ar-video" data-port="video"><b>HDMI / DP</b><small>Pantalla</small><i></i></button>
-        <button class="ar-label ar-lan" data-port="lan"><b>ETHERNET</b><small>Internet</small><i></i></button>
-        <button class="ar-label ar-audio" data-port="audio"><b>AUDIO</b><small>Audífonos</small><i></i></button>
-        <div class="camera-note" id="cameraNote">Etiquetas demostrativas · confirma visualmente el puerto</div>
+        <div class="camera-status"><span class="pulse-dot"></span><span id="cameraStatus">CÁMARA DESACTIVADA</span><b id="detectorBadge">IA SIN CONECTAR</b></div>
+        <div class="detection-layer" id="detectionLayer" aria-live="polite"></div>
+        <div class="camera-note" id="cameraNote">Conecta el motor de visión para detectar puertos reales.</div>
       </div>
       <div class="camera-actions"><button class="button white" id="switchCamera">↻ Cambiar cámara</button><button class="button purple" id="capturePhoto">◎ Capturar foto</button></div>
-      <div class="honesty-note"><span>✦</span><p><b>Escáner asistido</b><br>Las etiquetas son interactivas, pero todavía no reconocen automáticamente la posición real de los puertos.</p></div>
-      <div class="section-title"><div><small>TOCA PARA APRENDER</small><h2>¿Qué conexión es? <span>👇</span></h2></div></div>
+      <section class="ai-setup-card" aria-labelledby="aiSetupTitle">
+        <div class="ai-title-row"><span class="ai-orb">✦</span><div><b id="aiSetupTitle">Motor de visión: PC Ports</b><small>Modelo de detección de USB-A, USB-C, HDMI, RJ45 y conector de audio.</small></div></div>
+        <label class="api-key-label" for="roboflowKey">API key de Roboflow</label>
+        <input id="roboflowKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Pega aquí tu API key" aria-describedby="apiKeyHelp">
+        <div class="key-help" id="apiKeyHelp">Necesitas una clave propia para consultar el modelo. <a href="https://app.roboflow.com/settings/api" target="_blank" rel="noopener noreferrer">Obtener API key ↗</a></div>
+        <label class="cloud-consent"><input type="checkbox" id="cloudConsent"><span>Entiendo que se enviará una imagen de la cámara a Roboflow para procesarla cuando la detección esté activa.</span></label>
+        <div class="detector-actions"><button class="button purple" id="startDetector">✦ Iniciar detección IA</button><button class="button white" id="stopDetector" disabled>Detener</button></div>
+        <p class="detector-help" id="detectorHelp">La clave no se guarda en el código ni en el historial. Usa tu propia clave y no la publiques en el repositorio.</p>
+      </section>
+      <div class="honesty-note"><span>☁️</span><p><b>Detección real, con limitaciones</b><br>Este prototipo consulta el modelo comunitario pc-ports/1 en la nube. La precisión depende de la luz, distancia y modelo; no todos los puertos serán detectados siempre. La conexión a internet y la cuota del servicio son necesarias.</p></div>
+      <div class="section-title"><div><small>FICHAS DE APOYO</small><h2>Aprende sobre cada puerto <span>👇</span></h2></div></div>
       <div class="port-list">
         <button class="port-row" data-port="usb"><span class="port-picto violet">▣</span><span><b>USB-A / USB-C</b><small>Mouse, teclado, memorias</small></span><strong>›</strong></button>
         <button class="port-row" data-port="video"><span class="port-picto yellow">▱</span><span><b>HDMI / DisplayPort</b><small>Monitor y pantalla</small></span><strong>›</strong></button>

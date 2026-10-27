@@ -1,7 +1,7 @@
 {
   "name": "PortVision — Escáner y guía para tu PC",
   "short_name": "PortVision",
-  "description": "Guías interactivas para identificar conexiones, diagnosticar problemas y cuidar tu computadora.",
+  "description": "Realidad aumentada visual para reconocer puertos de computadora con ayuda de IA.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
