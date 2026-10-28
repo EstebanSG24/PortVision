@@ -1,38 +1,33 @@
-# PortVision — Realidad aumentada para puertos de PC
+# PortVision — Realidad aumentada visual para tarjeta madre de PC de escritorio
 
-Versión del prototipo que **elimina las etiquetas falsas** y dibuja recuadros únicamente a partir de predicciones devueltas por un modelo de visión.
+Este proyecto usa una cámara móvil, modelos de detección de puertos y una segunda búsqueda visual abierta para señalar conexiones adicionales. Los cuadros verdes son clases que el detector de puertos reconoce; los cuadros naranjas señalan una clase adicional (por ejemplo VGA, DVI, PS/2, S/PDIF, antenna, SATA, headers, RAM/DIMM o PCIe) o un candidato genérico que todavía debe verificarse.
+
+## Publicación
+1. Reemplaza los archivos del repositorio de GitHub Pages por los de esta carpeta, dejando `index.html`, `styles.css`, `app.js`, `guides.js`, `manifest.json`, `sw.js` y `icons/` en la raíz.
+2. Haz Commit changes y espera a que GitHub Pages termine el despliegue.
+3. Cierra/reabre PortVision en el teléfono. El service worker tiene un nombre de caché nuevo (`portvision-board-v4`).
+4. Abre Escáner, pega tu propia clave de Roboflow, marca el consentimiento de envío de imágenes y selecciona **Tarjeta madre de escritorio · buscar conectores extra**.
+5. Pulsa Iniciar detección IA y apunta a la zona de conectores de la placa madre. Usa buena luz, evita el movimiento y llena el encuadre con el panel de I/O o el conector que quieres identificar.
+
+## Detección de conectores adicionales
+- El modo específico para tarjeta madre llama a `pc-ports/1` para los tipos comunes y a Grounding DINO (`/grounding_dino/infer`) con prompts de conectores de escritorio: HDMI, USB-A/USB-C, DisplayPort, Ethernet, jack de audio, VGA, DVI, PS/2, S/PDIF, antenas, Thunderbolt, serial/parallel, SATA, headers de panel frontal/USB/fan, alimentación ATX, M.2, PCIe y ranuras DIMM/RAM.
+- Si los modelos reconocen una clase adicional, se dibuja naranja con una flecha. Los candidatos genéricos se muestran como **Conector no catalogado**, sin inventar un nombre específico.
+- El botón **Marcar con flecha** permite que la persona señale un conector que la IA no vio. La etiqueta manual se diferencia y no se considera detección automática.
+- Las detecciones se estabilizan entre fotogramas para reducir el parpadeo. El modo de placa madre puede tardar más y consumir más cuota porque hace dos inferencias por ciclo.
+
+## Limitaciones importantes
+- La detección abierta cero-shot no garantiza detectar cada puerto o conectar una etiqueta exactamente a su borde. La precisión depende del modelo, iluminación, ángulo, tamaño, enfoque y cuota de Roboflow. Para una cobertura fiable de toda una placa madre hace falta entrenar/evaluar un modelo con imágenes de sus puertos objetivo y validarlo en equipos reales.
+- Los cuadros naranjas son tipos adicionales sugeridos por el modelo o regiones genéricas candidatas; no significan que se conozca con certeza el conector. Comprueba serigrafías de la placa y manual del fabricante antes de conectar algo.
+- La app utiliza visión 2D con cuadros superpuestos a la cámara; no es seguimiento espacial 3D anclado (SLAM/ARCore).
+- Los fotogramas se envían a los servidores de Roboflow para inferencia. La clave se introduce en el navegador, por lo que no debe publicarse en el repositorio ni usarse una clave con permisos que no quieras exponer. En una implementación para muchos usuarios, conviene un backend propio para proteger la clave.
+- La API puede consumir créditos/cuota según la cuenta. Detén la detección al terminar.
 
 ## Archivos
-- `index.html`: estructura de pantallas e interfaz del escáner.
-- `styles.css`: diseño móvil, recuadros de detección y animaciones.
-- `app.js`: cámara, llamadas a inferencia, colocación de etiquetas, guías, diagnóstico, historial y checklist.
-- `guides.js`: contenido de guías.
-- `manifest.json`: instalación PWA.
-- `sw.js`: caché offline básica.
-- `icons/`: iconos.
+- `index.html`: estructura y controles de UI.
+- `styles.css`: diseño móvil, cuadros de detección naranja/verde y flechas.
+- `app.js`: cámara, inferencia, filtros, etiquetas, guías, diagnóstico e historial.
+- `guides.js`: guías de mantenimiento.
+- `manifest.json`, `sw.js`, `icons/`: instalación PWA y caché.
 
-## Activar la detección real
-El escáner utiliza el modelo comunitario `pc-ports/1` de Roboflow Universe, que anuncia clases HDMI, jack-plug, RJ45, USB-A y USB-C. Página del modelo: https://universe.roboflow.com/ports-gmmmp/pc-ports
-
-1. Publica los archivos de esta carpeta en la raíz de tu repo de GitHub Pages y espera el despliegue.
-2. Abre el enlace HTTPS en el teléfono y permite el acceso a la cámara.
-3. Crea/consulta tu API key en https://app.roboflow.com/settings/api.
-4. En Escáner, pega tu propia API key, marca la casilla de consentimiento de envío de fotogramas y pulsa **Iniciar detección IA**.
-5. La app analiza aproximadamente un fotograma cada 1.6 segundos. Cuando el modelo detecta una clase, dibuja un recuadro en la posición estimada de la imagen; al tocarlo muestra una ficha del puerto.
-6. Pulsa **Detener** para cerrar el análisis; al abandonar el escáner, la app también detiene la cámara y las solicitudes.
-
-## Privacidad y API key
-- PortVision **no incluye una API key** en el repositorio.
-- La clave que se pega se mantiene solo en memoria de la pestaña: no se guarda en `localStorage` ni se escribe en archivos.
-- Al activar el detector, los fotogramas reducidos se envían a Roboflow para inferencia remota. No actives la detección si no aceptas ese envío.
-- La clave se usa desde el navegador y una persona con acceso al dispositivo o herramientas de desarrollo podría inspeccionar sus solicitudes. No pegues una clave con permisos que no quieras exponer. Para una publicación de uso abierto, la solución correcta es un backend propio que proteja la clave o convertir el modelo a inferencia local.
-- La API puede tener cuotas, límites o costos definidos por la cuenta y el servicio. Detén la detección cuando no la estés usando.
-
-## Límites conocidos
-- Esto es detección visual 2D superpuesta al vídeo: los cuadros se recalculan por fotograma y siguen el movimiento de la imagen, pero no es un sistema SLAM/ARCore que ancle objetos en el espacio 3D.
-- El modelo comunitario es limitado y no garantiza detectar todos los conectores, modelos de PC, ángulos o condiciones de luz. Las clases documentadas son HDMI, jack-plug, RJ45, USB-A y USB-C; no se asume compatibilidad con todos los tipos de DisplayPort o conectores propietarios.
-- Si el modelo no encuentra nada, la app no coloca etiquetas inventadas. Acerca la cámara, mejora la luz, enfoca el panel de puertos y detén/reinicia si la API devuelve un error.
-- El diagnóstico y las guías son orientativos. No abras la fuente de poder ni manipules el interior de una PC conectada.
-
-## Probar localmente
-Con VS Code y Live Server, sirve la carpeta por localhost. En teléfonos, cámara y `getUserMedia` requieren HTTPS o un contexto local seguro. Si cambias archivos ya publicados, recarga la página; si el navegador conserva archivos antiguos, cierra la PWA o limpia la caché del sitio. El service worker de esta versión usa `portvision-ar-v2` para forzar actualización.
+## Seguridad
+No abras la fuente de poder ni manipules componentes internos de la PC mientras esté conectada. Apaga y desconecta el equipo antes de hacer mantenimiento físico.

@@ -1,7 +1,7 @@
 {
-  "name": "PortVision — Escáner y guía para tu PC",
+  "name": "PortVision — Tarjeta madre de escritorio",
   "short_name": "PortVision",
-  "description": "Realidad aumentada visual para reconocer puertos de computadora con ayuda de IA.",
+  "description": "Escáner visual de puertos y conectores de tarjeta madre de PC de escritorio.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

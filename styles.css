@@ -27,3 +27,28 @@
 .ai-title-row{display:flex;align-items:center;gap:10px;margin-bottom:15px}.ai-orb{width:41px;height:41px;border-radius:14px;background:#211d3f;color:#aaf5ce;display:grid;place-items:center;font-size:24px;box-shadow:0 6px 15px #211d3f25;flex:none}.ai-title-row>div{display:flex;flex-direction:column;gap:5px}.ai-title-row b{font-size:12px}.ai-title-row small{color:var(--muted);font-size:10px;line-height:1.5}
 .api-key-label{display:block;font-size:10px;font-weight:850;margin-bottom:7px}.ai-setup-card input[type=password]{width:100%;min-height:43px;border:1px solid #ded9f5;border-radius:12px;padding:11px 12px;background:white;outline:0;color:var(--ink);font-size:12px;letter-spacing:.2px}.ai-setup-card input[type=password]:focus{border-color:var(--purple);box-shadow:0 0 0 3px #7864f81f}.key-help{font-size:10px;line-height:1.5;color:var(--muted);margin-top:7px}.key-help a{display:inline-block;color:var(--purple-dark);font-weight:850;text-decoration:none;margin-left:3px}.cloud-consent{display:flex;align-items:flex-start;gap:9px;margin:14px 0;color:#696f84;font-size:10px;line-height:1.5}.cloud-consent input{width:17px;height:17px;flex:none;margin:1px 0 0;accent-color:var(--purple)}.detector-actions{display:flex;gap:8px}.detector-actions .button{flex:1;justify-content:center;font-size:10px;padding:11px 8px}.detector-actions .button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}.detector-help{font-size:10px;line-height:1.55;color:#77718f;margin:12px 0 0}.honesty-note{margin-top:13px}
 @media(max-width:380px){.detected-tag{gap:4px;padding:4px 5px}.detected-tag b{font-size:8px}.detected-tag small{font-size:7px}.ai-setup-card{padding:13px}.detector-actions{gap:6px}.detector-actions .button{font-size:9px}}
+
+/* Selector de modelo y ayudas para la calibración de PortVision */
+.model-mode-select{display:block;width:100%;min-height:44px;margin:0 0 7px;border:1px solid #ded9f5;border-radius:12px;padding:10px 12px;background:#fff;color:var(--ink);font:inherit;font-size:11px;font-weight:750;outline:none}
+.model-mode-select:focus{border-color:var(--purple);box-shadow:0 0 0 3px #7864f81f}
+.model-mode-help{font-size:10px;line-height:1.5;color:var(--muted);margin:0 0 14px}
+.detected-box{border-color:#aaf5ce;background:#aaf5ce10}
+.detected-tag{user-select:none}
+
+/* PortVision desktop-motherboard open-vocabulary detections */
+.detected-box.is-unknown{border-color:#ffae42;background:#ffae4219;box-shadow:0 0 0 2px #ffae423d,0 0 18px #ffae4233;border-style:dashed}
+.detected-box.is-unknown .detected-tag{border-color:#ffae42;background:#2a1b12f2}
+.detected-box.is-unknown .detected-tag b{color:#ffd18b}
+.detected-box.is-unknown .detected-tag small{background:#ffae42;color:#34200c}
+.detected-box.is-unknown::after{content:'➤';position:absolute;right:-11px;bottom:-16px;color:#ffae42;font-size:24px;line-height:1;text-shadow:0 2px 7px #000a;transform:rotate(35deg);animation:unknownPoint .7s ease-in-out infinite alternate;pointer-events:none}
+.detected-box.is-manual{border-style:dashed;border-width:2px;animation:detectedIn .22s ease-out both,manualPulse 1.5s ease-in-out infinite}
+.detection-layer.manual-marking{pointer-events:auto;cursor:crosshair;touch-action:manipulation}
+.detection-layer.manual-marking::after{content:'TOCA EL CONECTOR PARA MARCARLO';position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);max-width:80%;text-align:center;background:#211d3fee;border:1px solid #ffae42;color:#ffe0a8;padding:9px 12px;border-radius:11px;font-size:9px;font-weight:950;letter-spacing:.5px;box-shadow:0 5px 20px #0004;pointer-events:none}
+.unknown-tools{display:flex;gap:8px;margin-top:9px}
+.unknown-tools .button{flex:1;justify-content:center;min-height:40px;font-size:10px;padding:9px 8px}
+.button.amber-outline{background:#fff5e5;border:1px solid #ffbc5b;color:#8a4d00;box-shadow:0 4px 12px #da8e2011}
+.button.amber-outline.active{background:#ffb94d;color:#2c1a00;border-color:#ee9e2b;box-shadow:0 0 0 3px #ffb94d44}
+.manual-hint{font-size:9px;line-height:1.5;color:#77718f;margin:9px 0 0}
+@keyframes unknownPoint{from{transform:translate(0,0) rotate(35deg)}to{transform:translate(2px,4px) rotate(48deg)}}
+@keyframes manualPulse{0%,100%{box-shadow:0 0 0 2px #ffae4233,0 0 15px #ffae4218}50%{box-shadow:0 0 0 6px #ffae420d,0 0 22px #ffae4250}}
+@media(max-width:380px){.unknown-tools{gap:6px}.unknown-tools .button{font-size:9px}}
